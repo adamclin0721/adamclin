@@ -153,10 +153,7 @@
   .baxis__scale .s100{right:0}
   .blabel{font-family:var(--display);font-size:.86rem;font-weight:500;color:var(--ink);line-height:1.25}
   .blabel small{display:block;font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;color:var(--ink-faint);font-weight:400;margin-top:2px}
-  .btrack{position:relative;height:14px;border-radius:3px;
-    background:linear-gradient(90deg,var(--cool),var(--mid) 50%,var(--warm));}
-  .btrack::after{content:"";position:absolute;inset:0;border-radius:3px;
-    background-image:repeating-linear-gradient(90deg,rgba(27,42,48,.16) 0 1px,transparent 1px 12.5%);}
+  .btrack{position:relative;height:14px;border-radius:3px;background:var(--mid)}
   .bmark{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--ink);border-radius:2px;transform:translateX(-50%);
     box-shadow:0 0 0 2px var(--surface)}
   .bmark::after{content:"";position:absolute;top:-4px;left:50%;width:7px;height:7px;background:var(--brass);border:1.5px solid var(--surface);border-radius:50%;transform:translate(-50%,-100%)}
@@ -218,6 +215,44 @@
   .foot .l{font-family:var(--display);font-size:.86rem;color:var(--ink-soft)}
   .foot .r{font-family:var(--mono);font-size:.7rem;color:var(--ink-faint);letter-spacing:.06em}
 
+  /* ---------- clickable entries ---------- */
+  .entry.is-link{cursor:pointer;transition:background .15s ease;border-radius:6px}
+  .entry.is-link:hover{background:var(--surface)}
+  .entry.is-link:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .entry__more{display:inline-block;margin-top:12px;font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;color:var(--brass)}
+  .entry.is-link:hover .entry__more{text-decoration:underline}
+
+  /* ---------- reader (長文 / PDF) ---------- */
+  .reader{padding-top:30px;animation:fade .35s ease}
+  .reader__bar{margin-bottom:20px}
+  .reader__back{font-family:var(--display);font-weight:500;font-size:.9rem;color:var(--ink-soft);background:none;border:none;cursor:pointer;padding:6px 2px}
+  .reader__back:hover{color:var(--brass)}
+  .reader__back:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:4px}
+  .rd-head{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:28px}
+  .rd-eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+  .rd-title{font-family:var(--serif);font-size:clamp(1.85rem,4.4vw,2.65rem);font-weight:500;line-height:1.22;letter-spacing:-.01em;margin:.5rem 0 .6rem;max-width:20em}
+  .rd-meta{font-family:var(--mono);font-size:.76rem;color:var(--ink-faint);letter-spacing:.04em}
+  .rd-meta .stars{font-size:.86rem}
+  .rd-note{font-family:var(--serif);font-style:italic;color:var(--ink-soft);margin-top:14px;font-size:1.08rem;max-width:42em}
+  .rd-prose{max-width:38em;font-size:1.14rem;line-height:1.85;color:var(--ink)}
+  .rd-prose p{margin:0 0 1.15em}
+  .rd-prose h3{font-family:var(--display);font-weight:600;font-size:1.32rem;letter-spacing:-.01em;margin:1.9em 0 .55em}
+  .rd-prose h4{font-family:var(--display);font-weight:600;font-size:1.08rem;margin:1.5em 0 .4em}
+  .rd-prose ul{margin:0 0 1.15em;padding-left:1.25em}
+  .rd-prose li{margin:.32em 0}
+  .rd-prose em{font-style:italic;color:var(--teal)}
+  .rd-prose strong{font-weight:600}
+  .rd-pdf{max-width:920px}
+  .rd-pdf__bar{display:flex;gap:20px;margin-bottom:12px}
+  .rd-pdf__bar a{font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;color:var(--teal)}
+  .rd-pdf__bar a:hover{color:var(--brass)}
+  .rd-pdf__frame{width:100%;height:78vh;min-height:520px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+  .rd-pdf__fallback{font-family:var(--mono);font-size:.72rem;color:var(--ink-faint);margin-top:10px}
+
+  /* ---------- timeline image ---------- */
+  .tl__img{margin:14px 0 2px;max-width:440px}
+  .tl__img img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:8px}
+
   @media (max-width:680px){
     body{font-size:16px}
     .wrap{padding:0 20px}
@@ -270,7 +305,6 @@
   <!-- ============ HOME ============ -->
   <section class="panel is-active" id="home" role="tabpanel" aria-label="首頁">
     <div class="hero">
-      <span class="eyebrow" id="heroEyebrow"></span>
       <h2 id="heroMotto"></h2>
       <p class="hero__sub" id="heroSub"></p>
     </div>
@@ -358,10 +392,16 @@
 
 </main>
 
+<div id="reader" class="reader" hidden>
+  <div class="reader__bar wrap">
+    <button class="reader__back" id="readerBack">← 返回</button>
+  </div>
+  <div class="wrap" id="readerBody"></div>
+</div>
+
 <footer>
   <div class="wrap foot">
     <span class="l">© 2026 Adam · 個人作品</span>
-    <span class="r">數據手動維護 · 非投資建議</span>
   </div>
 </footer>
 
@@ -370,257 +410,268 @@
 
 <script>
 /* =========================================================
-   渲染引擎 —— 一般情況不用動這裡。
-   要改網站內容（文字、數字、文章），請編輯 content.js
+   渲染引擎 —— 一般不用動。要改內容請編輯 content.js
    ========================================================= */
 const C = window.SITE_CONTENT || {};
-if(!window.SITE_CONTENT){
-  console.error("找不到 content.js：請確認 content.js 與 index.html 放在同一個資料夾。");
-}
+if(!window.SITE_CONTENT) console.error("找不到 content.js：請確認與 index.html 放在同一層資料夾。");
 
-/* 由 content.js 提供的內容 */
 const HEALTH  = C.health  || [];
 const READING = C.reading || [];
 const LIFE    = C.life    || [];
 
-/* 指標分級邏輯（一般不用動）。回傳 [區間名稱, 一句話判讀] */
-const breadthClassify = v => {
-  if(v<20) return ["超賣","多數個股跌破長期均線，極度弱勢／可能超賣。"];
-  if(v<45) return ["偏弱","長線結構偏弱，謹慎為宜。"];
-  if(v<70) return ["健康","多數個股維持長期上升結構。"];
-  if(v<85) return ["強勢","市場廣度強勁。"];
-  return ["過熱","廣度極高，留意過熱回檔風險。"];
+/* ---- 情緒五級（由四條門檻分界）---- */
+const LEVELS = ["極度恐懼","恐懼","中性","貪婪","極度貪婪"];
+const LEVEL_NOTE = {
+  "極度恐懼":"情緒極度悲觀；反向觀點下常被視為機會區。",
+  "恐懼":"市場偏向避險、人氣偏冷。",
+  "中性":"情緒大致平衡。",
+  "貪婪":"風險偏好升高、人氣偏熱。",
+  "極度貪婪":"情緒過熱；留意反轉與回檔風險。",
 };
-const CLASSIFIERS = {
-  tw_margin: v => {
-    if(v<138) return ["去槓桿壓力","接近追繳水位，融資戶承壓，常見於急跌打底。"];
-    if(v<152) return ["偏弱回穩","槓桿壓力緩解中，情緒仍偏謹慎。"];
-    if(v<165) return ["中性","維持率健康，市場情緒平穩。"];
-    return ["市場強勢","擔保品充裕、融資壓力低；強勢但留意追高。"];
-  },
-  tw_breadth: breadthClassify,
-  us_breadth: breadthClassify,
-  cnn_fng: v => {
-    if(v<25) return ["極度恐懼","反向觀點下常為機會區。"];
-    if(v<45) return ["恐懼","市場情緒偏向避險。"];
-    if(v<55) return ["中性","情緒大致平衡。"];
-    if(v<75) return ["貪婪","風險偏好升高。"];
-    return ["極度貪婪","情緒過熱，留意反轉風險。"];
-  },
-  bofa: v => {
-    if(v<2) return ["反向買進","機構情緒極度悲觀，歷史上多為買點。"];
-    if(v<4) return ["偏空","情緒偏向謹慎。"];
-    if(v<6) return ["中性","情緒大致中性。"];
-    if(v<8) return ["偏多","風險偏好偏高。"];
-    return ["反向賣出","情緒過熱，歷史上多為賣點。"];
-  },
-};
-const fmtNum = (unit, decimals) => v => Number(v).toFixed(decimals ?? 0) + (unit || "");
-
-/* 把 content.js 的指標設定，補上格式化、分級與座標端點 */
-const INDICATORS = ((C.dashboard && C.dashboard.indicators) || []).map(ind => ({
-  ...ind,
-  short: ind.short || ind.label,
-  scaleL: ind.min + (ind.unit || ""),
-  scaleR: ind.max + (ind.unit || ""),
-  fmt: fmtNum(ind.unit, ind.decimals),
-  classify: CLASSIFIERS[ind.id] || (() => ["",""]),
-}));
+const ZONE_COLORS = ["#3E6168","#79A1A8","#C9C1B0","#C58A5B","#A6542F"];
 
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const frac = ind => clamp((ind.value-ind.min)/(ind.max-ind.min),0,1);
 
-/* ---- 半圓儀表 SVG 幾何 ---- */
+/* 由四條門檻推導溫度軸兩端（等距時門檻會落在 20/40/60/80%） */
+function prep(ind){
+  const th=(ind.thresholds||[]).slice();
+  const dLow  = th.length>=2 ? th[1]-th[0] : 1;
+  const dHigh = th.length>=2 ? th[th.length-1]-th[th.length-2] : 1;
+  const min = ind.min!=null ? ind.min : th[0]-dLow;
+  const max = ind.max!=null ? ind.max : th[th.length-1]+dHigh;
+  return {...ind, thresholds:th, min, max, unit:ind.unit||"", decimals:ind.decimals??0, short:ind.short||ind.label};
+}
+const INDICATORS = ((C.dashboard&&C.dashboard.indicators)||[]).map(prep);
+
+const fval   = ind => Number(ind.value).toFixed(ind.decimals) + ind.unit;
+const fracOf = ind => clamp((ind.value-ind.min)/(ind.max-ind.min),0,1);
+function levelIndex(value, th){ let i=0; while(i<th.length && value>=th[i]) i++; return Math.min(i, LEVELS.length-1); }
+function tfracs(ind){ return ind.thresholds.map(t=>clamp((t-ind.min)/(ind.max-ind.min),0,1)); }
+function bandGradient(tf){
+  const f=[0,...tf.map(x=>x*100),100], stops=[];
+  for(let k=0;k<5;k++) stops.push(`${ZONE_COLORS[k]} ${f[k].toFixed(2)}% ${f[k+1].toFixed(2)}%`);
+  return `linear-gradient(90deg, ${stops.join(",")})`;
+}
+
+/* ---- 半圓儀表 SVG ---- */
 const G = { cx:130, cy:122, rArc:100, rNeedle:84, w:260, h:184 };
 function pt(r,t){ const a=t*Math.PI; return [G.cx-r*Math.cos(a), G.cy-r*Math.sin(a)]; }
-function mix(a,b,t){return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
-function tempColor(t){
-  const cool=[90,128,136],mid=[201,193,176],warm=[178,107,70];
-  const c = t<0.5 ? mix(cool,mid,t/0.5) : mix(mid,warm,(t-0.5)/0.5);
-  return `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
-}
 function arc(r,t0,t1){
   const [x0,y0]=pt(r,t0),[x1,y1]=pt(r,t1);
   return `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
 }
 function gaugeSVG(ind,idx){
+  const tf=tfracs(ind), bounds=[0,...tf,1];
   let seg="";
-  const N=40;
-  for(let i=0;i<N;i++){
-    const t0=i/N, t1=(i+1)/N+0.004;
-    seg+=`<path d="${arc(G.rArc,t0,Math.min(t1,1))}" stroke="${tempColor((i+0.5)/N)}" stroke-width="10" fill="none"/>`;
-  }
+  for(let k=0;k<5;k++) seg+=`<path d="${arc(G.rArc,bounds[k],bounds[k+1])}" stroke="${ZONE_COLORS[k]}" stroke-width="10" fill="none"/>`;
   let ticks="";
-  for(let i=0;i<=20;i++){
-    const t=i/20, major=(i%5===0);
-    const r0=G.rArc+6, r1=G.rArc+(major?16:10);
-    const [ax,ay]=pt(r0,t),[bx,by]=pt(r1,t);
-    ticks+=`<line x1="${ax.toFixed(2)}" y1="${ay.toFixed(2)}" x2="${bx.toFixed(2)}" y2="${by.toFixed(2)}" stroke="rgba(27,42,48,${major?0.5:0.28})" stroke-width="${major?1.4:1}"/>`;
-  }
+  for(let i=0;i<=10;i++){ const f=i/10,[ax,ay]=pt(G.rArc+5,f),[bx,by]=pt(G.rArc+10,f);
+    ticks+=`<line x1="${ax.toFixed(2)}" y1="${ay.toFixed(2)}" x2="${bx.toFixed(2)}" y2="${by.toFixed(2)}" stroke="rgba(27,42,48,0.22)" stroke-width="1"/>`; }
+  tf.forEach(f=>{ const [ax,ay]=pt(G.rArc+5,f),[bx,by]=pt(G.rArc+16,f);
+    ticks+=`<line x1="${ax.toFixed(2)}" y1="${ay.toFixed(2)}" x2="${bx.toFixed(2)}" y2="${by.toFixed(2)}" stroke="rgba(27,42,48,0.5)" stroke-width="1.4"/>`; });
   const id=`gn${idx}`;
-  return `<svg viewBox="0 0 ${G.w} ${G.h}" role="img" aria-label="${ind.label} ${ind.fmt(ind.value)}">
+  return `<svg viewBox="0 0 ${G.w} ${G.h}" role="img" aria-label="${ind.label} ${fval(ind)}">
     ${seg}${ticks}
     <line class="needle" id="${id}-n" x1="${G.cx}" y1="${G.cy}" x2="${G.cx-G.rNeedle}" y2="${G.cy}" stroke="#1B2A30" stroke-width="2.6" stroke-linecap="round"/>
     <circle class="needle-tip" id="${id}-t" cx="${G.cx-G.rNeedle}" cy="${G.cy}" r="3" fill="#1B2A30"/>
     <circle cx="${G.cx}" cy="${G.cy}" r="6.5" fill="#A67C26"/>
     <circle cx="${G.cx}" cy="${G.cy}" r="2.6" fill="#F1F1EA"/>
-    <text x="26" y="${G.cy+18}" font-family="IBM Plex Mono,monospace" font-size="10" fill="#7C8A8F" text-anchor="start">${ind.scaleL}</text>
-    <text x="234" y="${G.cy+18}" font-family="IBM Plex Mono,monospace" font-size="10" fill="#7C8A8F" text-anchor="end">${ind.scaleR}</text>
-    <text x="${G.cx}" y="${G.cy+34}" font-family="IBM Plex Mono,monospace" font-weight="600" font-size="22" fill="#1B2A30" text-anchor="middle">${ind.fmt(ind.value)}</text>
+    <text x="26" y="${G.cy+18}" font-family="IBM Plex Mono,monospace" font-size="10" fill="#7C8A8F" text-anchor="start">${ind.min}${ind.unit}</text>
+    <text x="234" y="${G.cy+18}" font-family="IBM Plex Mono,monospace" font-size="10" fill="#7C8A8F" text-anchor="end">${ind.max}${ind.unit}</text>
+    <text x="${G.cx}" y="${G.cy+34}" font-family="IBM Plex Mono,monospace" font-weight="600" font-size="22" fill="#1B2A30" text-anchor="middle">${fval(ind)}</text>
   </svg>`;
 }
 
 const gaugeRefs=[];
 function renderGauges(){
-  const grid=document.getElementById("gaugeGrid");
-  grid.innerHTML = INDICATORS.map((ind,i)=>{
-    const [zone,note]=ind.classify(ind.value);
+  document.getElementById("gaugeGrid").innerHTML = INDICATORS.map((ind,i)=>{
+    const idx=levelIndex(ind.value,ind.thresholds);
     return `<div class="gauge">
       <div class="gauge__head"><span class="gauge__title">${ind.label}</span><span class="gauge__tag">${ind.tag}</span></div>
       ${gaugeSVG(ind,i)}
-      <div class="gauge__zone">${zone}</div>
-      <div class="gauge__note">${note}</div>
+      <div class="gauge__zone">${LEVELS[idx]}</div>
+      <div class="gauge__note">${LEVEL_NOTE[LEVELS[idx]]}</div>
     </div>`;
   }).join("");
-  gaugeRefs.length = 0;
-  INDICATORS.forEach((ind,i)=>{
-    gaugeRefs.push({
-      needle:document.getElementById(`gn${i}-n`),
-      tip:document.getElementById(`gn${i}-t`),
-      target:frac(ind)
-    });
-  });
+  gaugeRefs.length=0;
+  INDICATORS.forEach((ind,i)=>gaugeRefs.push({needle:document.getElementById(`gn${i}-n`),tip:document.getElementById(`gn${i}-t`),target:fracOf(ind)}));
 }
-function setNeedle(g,t){
-  const [x,y]=pt(G.rNeedle,t);
-  g.needle.setAttribute("x2",x.toFixed(2));
-  g.needle.setAttribute("y2",y.toFixed(2));
-  g.tip.setAttribute("cx",x.toFixed(2));
-  g.tip.setAttribute("cy",y.toFixed(2));
-}
+function setNeedle(g,t){ const [x,y]=pt(G.rNeedle,t);
+  g.needle.setAttribute("x2",x.toFixed(2)); g.needle.setAttribute("y2",y.toFixed(2));
+  g.tip.setAttribute("cx",x.toFixed(2)); g.tip.setAttribute("cy",y.toFixed(2)); }
 let gaugesAnimated=false;
 function animateGauges(){
   if(gaugesAnimated) return; gaugesAnimated=true;
   const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
   if(reduce){ gaugeRefs.forEach(g=>setNeedle(g,g.target)); return; }
-  gaugeRefs.forEach((g,i)=>{
-    const start=performance.now(),dur=950,delay=i*110;
-    (function frame(now){
-      let p=(now-start-delay)/dur; p=clamp(p,0,1);
-      const e=1-Math.pow(1-p,3);
-      setNeedle(g,g.target*e);
-      if(p<1) requestAnimationFrame(frame);
-    })(performance.now());
-  });
+  gaugeRefs.forEach((g,i)=>{ const start=performance.now(),dur=950,delay=i*110;
+    (function frame(now){ let p=clamp((now-start-delay)/dur,0,1); const e=1-Math.pow(1-p,3); setNeedle(g,g.target*e); if(p<1) requestAnimationFrame(frame); })(performance.now()); });
 }
 
 function renderBullets(){
   document.getElementById("bulletRows").innerHTML = INDICATORS.map(ind=>{
-    const [zone]=ind.classify(ind.value);
-    const pct=(frac(ind)*100).toFixed(1);
+    const idx=levelIndex(ind.value,ind.thresholds);
     return `<div class="brow">
       <div class="blabel">${ind.short}<small>${ind.tag}</small></div>
-      <div class="btrack"><div class="bmark" style="left:${pct}%"></div></div>
-      <div class="bval">${ind.fmt(ind.value)}</div>
-      <div class="bzone">${zone}</div>
+      <div class="btrack" style="background:${bandGradient(tfracs(ind))}"><div class="bmark" style="left:${(fracOf(ind)*100).toFixed(1)}%"></div></div>
+      <div class="bval">${fval(ind)}</div>
+      <div class="bzone">${LEVELS[idx]}</div>
     </div>`;
   }).join("");
 }
 
+/* ---- 列表（可點進去）---- */
 function renderHealth(){
-  document.getElementById("healthList").innerHTML = HEALTH.map(a=>`
-    <div class="entry">
+  document.getElementById("healthList").innerHTML = HEALTH.map((a,i)=>{
+    const link = !!a.body;
+    return `<div class="entry${link?" is-link":""}"${link?` data-open="health/${i}" role="button" tabindex="0"`:""}>
       <div class="entry__main">
         <div class="entry__t">${a.title}</div>
         <div class="entry__d">${a.lead?`<span class="lead">${a.lead}</span>`:""}${a.desc||""}</div>
         <div class="tagrow">${(a.tags||[]).map(t=>`<span class="chip">${t}</span>`).join("")}</div>
+        ${link?`<span class="entry__more">閱讀全文 →</span>`:""}
       </div>
       <div class="entry__side">${a.date||""}${a.read?`<br>${a.read}`:""}</div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
-
-function starStr(n){
-  let s="";
-  for(let i=1;i<=5;i++) s+= i<=n ? "★" : `<span class="off">★</span>`;
-  return `<span class="stars">${s}</span>`;
-}
+function starStr(n){ let s=""; for(let i=1;i<=5;i++) s+= i<=n?"★":`<span class="off">★</span>`; return `<span class="stars">${s}</span>`; }
 function renderReading(){
-  document.getElementById("readingList").innerHTML = READING.map(b=>`
-    <div class="entry">
+  document.getElementById("readingList").innerHTML = READING.map((b,i)=>{
+    const link = !!b.pdf;
+    return `<div class="entry${link?" is-link":""}"${link?` data-open="reading/${i}" role="button" tabindex="0"`:""}>
       <div class="entry__main">
         <div class="entry__t">${b.title}</div>
         <div class="entry__by">${b.author||""}</div>
-        <div class="entry__d"><span class="lead">一句話</span>${b.note||""}</div>
+        ${b.note?`<div class="entry__d"><span class="lead">一句話</span>${b.note}</div>`:""}
         <div class="tagrow">${(b.tags||[]).map(t=>`<span class="chip">${t}</span>`).join("")}</div>
+        ${link?`<span class="entry__more">開啟 PDF →</span>`:""}
       </div>
       <div class="entry__side">${starStr(b.stars||0)}<br>${b.date||""}</div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
-
 function renderTimeline(){
   document.getElementById("timeline").innerHTML = LIFE.map(e=>`
-    <div class="tl__item${e.now?' now':''}">
+    <div class="tl__item${e.now?" now":""}">
       <span class="tl__node"></span>
       <div class="tl__yr">${e.year||""}</div>
       <div class="tl__t">${e.title||""}</div>
-      <div class="tl__d">${e.desc||""}</div>
+      ${e.desc?`<div class="tl__d">${e.desc}</div>`:""}
+      ${e.image?`<div class="tl__img"><img src="${e.image}" alt="${(e.title||"").replace(/"/g,"")}" loading="lazy"></div>`:""}
     </div>`).join("");
 }
 
-/* 首頁：用 *星號* 包住的字會變斜體強調；要換行用 \n */
-function fmtInline(s){
-  return String(s==null?"":s)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/\*([^*]+)\*/g,"<em>$1</em>")
-    .replace(/\n/g,"<br>");
-}
+/* ---- 首頁 ---- */
+function fmtInline(s){ return String(s==null?"":s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+  .replace(/\*([^*]+)\*/g,"<em>$1</em>").replace(/\n/g,"<br>"); }
 function renderHome(){
-  const h = C.home || {};
+  const h=C.home||{};
   document.getElementById("brandName").textContent = C.brand || "Adam";
-  document.getElementById("heroEyebrow").textContent = h.eyebrow || "";
   document.getElementById("heroMotto").innerHTML = fmtInline(h.motto);
   document.getElementById("heroSub").innerHTML = fmtInline(h.subtitle);
   document.getElementById("codexGrid").innerHTML = (h.principles||[]).map(p=>`
-    <div class="tenet">
-      <div class="tenet__tag">${p.tag||""}</div>
+    <div class="tenet"><div class="tenet__tag">${p.tag||""}</div>
       <div class="tenet__t">${fmtInline(p.title)}</div>
-      <div class="tenet__g">${fmtInline(p.note)}</div>
-    </div>`).join("");
+      <div class="tenet__g">${fmtInline(p.note)}</div></div>`).join("");
+}
+
+/* ---- 長文（極簡 Markdown）---- */
+function mdLite(src){
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const inline=s=>esc(s).replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/\*([^*]+)\*/g,"<em>$1</em>");
+  const lines=String(src||"").replace(/\r/g,"").split("\n");
+  let html="",list=false; const closeL=()=>{ if(list){html+="</ul>";list=false;} };
+  for(const raw of lines){ const line=raw.trim();
+    if(!line){ closeL(); continue; }
+    if(line.startsWith("### ")){ closeL(); html+=`<h4>${inline(line.slice(4))}</h4>`; }
+    else if(line.startsWith("## ")){ closeL(); html+=`<h3>${inline(line.slice(3))}</h3>`; }
+    else if(line.startsWith("- ")){ if(!list){html+="<ul>";list=true;} html+=`<li>${inline(line.slice(2))}</li>`; }
+    else { closeL(); html+=`<p>${inline(line)}</p>`; } }
+  closeL(); return html;
+}
+
+/* ---- 閱讀視圖（長文 / PDF）---- */
+const reader=document.getElementById("reader");
+const readerBody=document.getElementById("readerBody");
+const mainEl=document.querySelector("main");
+let readerSource="health";
+function openArticle(type,index){
+  const list = type==="reading"?READING:HEALTH;
+  const item = list[index];
+  if(!item){ location.hash=type; return; }
+  readerSource=type;
+  if(type==="health"){
+    readerBody.innerHTML = `
+      <header class="rd-head">
+        ${item.lead?`<div class="rd-eyebrow">${item.lead}</div>`:""}
+        <h1 class="rd-title">${item.title}</h1>
+        <div class="rd-meta">${[item.date,item.read].filter(Boolean).join(" · ")}</div>
+      </header>
+      <div class="rd-prose">${mdLite(item.body)}</div>`;
+  } else {
+    readerBody.innerHTML = `
+      <header class="rd-head">
+        ${item.author?`<div class="rd-eyebrow">${item.author}</div>`:""}
+        <h1 class="rd-title">${item.title}</h1>
+        <div class="rd-meta">${starStr(item.stars||0)}${item.date?" · "+item.date:""}</div>
+        ${item.note?`<p class="rd-note">${item.note}</p>`:""}
+      </header>
+      <div class="rd-pdf">
+        <div class="rd-pdf__bar"><a href="${item.pdf}" target="_blank" rel="noopener">在新分頁開啟 ↗</a><a href="${item.pdf}" download>下載 PDF ↓</a></div>
+        <iframe class="rd-pdf__frame" src="${item.pdf}" title="${item.title}"></iframe>
+        <p class="rd-pdf__fallback">若下方空白，請點上方「在新分頁開啟」。（本機直接開檔可能無法內嵌預覽，部署後即正常。）</p>
+      </div>`;
+  }
+  tabs.forEach(t=>t.setAttribute("aria-selected", t.dataset.target===type?"true":"false"));
+  mainEl.hidden=true; reader.hidden=false;
+  if(location.hash.slice(1)!==`${type}/${index}`) history.replaceState(null,"",`#${type}/${index}`);
+  window.scrollTo({top:0,behavior:"auto"});
+}
+function closeReaderUI(){ reader.hidden=true; mainEl.hidden=false; }
+document.getElementById("readerBack").addEventListener("click",()=>{ location.hash=readerSource; });
+
+function bindOpen(listId){
+  const el=document.getElementById(listId);
+  el.addEventListener("click",e=>{ const t=e.target.closest("[data-open]"); if(t) location.hash=t.getAttribute("data-open"); });
+  el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ const t=e.target.closest("[data-open]"); if(t){ e.preventDefault(); location.hash=t.getAttribute("data-open"); } } });
 }
 
 /* ---- 分頁切換 ---- */
 const tabs=[...document.querySelectorAll(".tab")];
 const panels=[...document.querySelectorAll(".panel")];
-function activate(id,push){
+function activate(id){
+  closeReaderUI();
   if(!document.getElementById(id)) id="home";
-  tabs.forEach(t=>t.setAttribute("aria-selected", t.dataset.target===id ? "true":"false"));
+  tabs.forEach(t=>t.setAttribute("aria-selected", t.dataset.target===id?"true":"false"));
   panels.forEach(p=>p.classList.toggle("is-active", p.id===id));
   if(id==="dashboard") animateGauges();
-  if(push && location.hash!=="#"+id) history.replaceState(null,"","#"+id);
   window.scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
 }
-tabs.forEach(t=>t.addEventListener("click",()=>activate(t.dataset.target,true)));
+tabs.forEach(t=>t.addEventListener("click",()=>{ location.hash=t.dataset.target; }));
 tabs.forEach((t,i)=>t.addEventListener("keydown",e=>{
-  if(e.key==="ArrowRight"||e.key==="ArrowLeft"){
-    e.preventDefault();
-    const n=(i+(e.key==="ArrowRight"?1:tabs.length-1))%tabs.length;
-    tabs[n].focus(); activate(tabs[n].dataset.target,true);
-  }
+  if(e.key==="ArrowRight"||e.key==="ArrowLeft"){ e.preventDefault();
+    const n=(i+(e.key==="ArrowRight"?1:tabs.length-1))%tabs.length; tabs[n].focus(); location.hash=tabs[n].dataset.target; }
 }));
-window.addEventListener("hashchange",()=>activate(location.hash.slice(1)||"home",false));
+
+/* ---- 路由 ---- */
+function route(){
+  const h=location.hash.slice(1);
+  const m=h.match(/^(health|reading)\/(\d+)$/);
+  if(m){ openArticle(m[1], +m[2]); return; }
+  activate(h||"home");
+}
+window.addEventListener("hashchange",route);
 
 /* ---- 啟動 ---- */
 function renderAll(){
-  document.getElementById("lastUpd").textContent = (C.dashboard && C.dashboard.lastUpdated) || "";
-  renderHome();
-  renderBullets();
-  renderGauges();
-  renderHealth();
-  renderReading();
-  renderTimeline();
+  document.getElementById("lastUpd").textContent = (C.dashboard&&C.dashboard.lastUpdated)||"";
+  renderHome(); renderBullets(); renderGauges(); renderHealth(); renderReading(); renderTimeline();
 }
 renderAll();
-activate(location.hash.slice(1)||"home", false);
+bindOpen("healthList"); bindOpen("readingList");
+route();
 </script>
 </body>
 </html>
