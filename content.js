@@ -16,9 +16,9 @@ window.SITE_CONTENT = {
   /* ============ 首頁 ============ */
   home: {
     // 座右銘。想讓某幾個字變斜體強調，用 *星號* 包起來。
-    motto: "把投資與人生，都當成一套需要*紀律執行*的系統。",
+    motto: "Slow is smooth, smooth is fast.",
     // 副標。換行用 \n；同樣可用 *星號* 強調。
-    subtitle: "*低戲劇性。存活優先。長期主義。*\n波動會過去，流程會留下。",
+    subtitle: "Go ahead and enjoy!",
     principles: [
       { tag: "SURVIVAL", title: "先求不敗，再求致勝。", note: "活下來，複利才有意義；任何策略的第一條約束是別爆倉。" },
       { tag: "PROCESS",  title: "流程重於結果。",       note: "對的決策有時也會輸；判準是決策品質，不是單次損益。" },
@@ -35,13 +35,13 @@ window.SITE_CONTENT = {
        < 第1門檻＝極度恐懼、…、≥ 第4門檻＝極度貪婪。
      （門檻等距時，會剛好落在溫度軸的 20 / 40 / 60 / 80%。）  */
   dashboard: {
-    lastUpdated: "2026-06-13",
+    lastUpdated: "2026-06-14",
     indicators: [
-      { id: "tw_margin",  label: "台股大盤融資維持率",     short: "融資維持率", tag: "TWSE",      value: 158, thresholds: [140, 150, 160, 170], unit: "%", decimals: 0 },
-      { id: "tw_breadth", label: "台股 200 日均線之上比例", short: "台股廣度",   tag: ">200MA",    value: 58,  thresholds: [20, 40, 60, 80],     unit: "%", decimals: 0 },
-      { id: "us_breadth", label: "美股 200 日均線之上比例", short: "美股廣度",   tag: "$SPXA200R", value: 64,  thresholds: [20, 40, 60, 80],     unit: "%", decimals: 0 },
-      { id: "cnn_fng",    label: "CNN 恐懼貪婪指數",        short: "CNN F&G",    tag: "CNN",       value: 52,  thresholds: [20, 40, 60, 80],     unit: "",  decimals: 0 },
-      { id: "bofa",       label: "BofA 牛熊指標",           short: "BofA 牛熊",  tag: "BofA",      value: 5.6, thresholds: [2, 4, 6, 8],         unit: "",  decimals: 1 },
+      { id: "tw_margin",  label: "台股大盤融資維持率",     short: "融資維持率", tag: "TWSE",      value: 167.32, thresholds: [140, 150, 160, 170], unit: "%", decimals: 0 },
+      { id: "tw_breadth", label: "台股 200 日均線之上比例", short: "台股廣度",   tag: ">200MA",    value: 59.33,  thresholds: [20, 40, 60, 80],     unit: "%", decimals: 0 },
+      { id: "us_breadth", label: "美股 200 日均線之上比例", short: "美股廣度",   tag: "$SPXA200R", value: 55.38,  thresholds: [20, 40, 60, 80],     unit: "%", decimals: 0 },
+      { id: "cnn_fng",    label: "CNN 恐懼貪婪指數",        short: "CNN F&G",    tag: "CNN",       value: 34,  thresholds: [20, 40, 60, 80],     unit: "",  decimals: 0 },
+      { id: "bofa",       label: "BofA 牛熊指標",           short: "BofA 牛熊",  tag: "BofA",      value: 8.8, thresholds: [2, 4, 6, 8],         unit: "",  decimals: 1 },
     ],
   },
 
