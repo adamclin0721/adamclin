@@ -761,6 +761,47 @@ function applyReadingFilter(){
   document.querySelectorAll("#readingFilter .rchip").forEach(ch=>ch.classList.toggle("is-on",ch.getAttribute("data-cat")===readingCat));
 }
 
+/* ---- 閱讀筆記／人生高光：Google 試算表（選用）----
+   在 content.js 的 sources.reading / sources.life 填入「已發布為 CSV」的網址即可啟用；
+   抓得到就覆寫，抓不到或留空白則沿用 content.js 內建資料。 */
+function csvToObjects(text, aliases){
+  const rows=parseCSV(text); if(rows.length<2) return null;
+  const head=rows[0].map(s=>String(s).trim().toLowerCase());
+  const idx={};
+  for(const key in aliases){ for(const a of aliases[key]){ const i=head.indexOf(a.toLowerCase()); if(i>=0){ idx[key]=i; break; } } }
+  const out=[];
+  for(let r=1;r<rows.length;r++){
+    const row=rows[r]; const o={}; let any=false;
+    for(const key in idx){ const v=String(row[idx[key]]!=null?row[idx[key]]:"").trim(); o[key]=v; if(v) any=true; }
+    if(any) out.push(o);
+  }
+  return out;
+}
+const READING_FIELDS={cat:["cat","分類","類別"],title:["title","書名","標題"],author:["author","作者"],note:["note","一句話","摘要","重點"],tags:["tags","標籤"],pdf:["pdf","檔案","檔名"]};
+const LIFE_FIELDS={year:["year","年","年份"],title:["title","標題","事件"],desc:["desc","說明","描述"],now:["now","目前","現在"],image:["image","圖","圖片"]};
+function _splitTags(s){ return String(s||"").split(/[,，、|\/]+/).map(x=>x.trim()).filter(Boolean); }
+function _asset(p,dir){ p=String(p||"").trim(); if(!p) return ""; if(/^https?:\/\//.test(p)||p.indexOf("/")>=0) return p; return dir+"/"+p; }
+function fetchReading(){
+  const url=C.sources&&C.sources.reading; if(!url) return;
+  fetch(url,{cache:"no-store"}).then(r=>r.ok?r.text():Promise.reject(r.status)).then(text=>{
+    const objs=csvToObjects(text,READING_FIELDS); if(!objs||!objs.length) return;
+    const books=objs.map(o=>({cat:o.cat||"",title:o.title||"",author:o.author||"",note:o.note||"",tags:_splitTags(o.tags),pdf:_asset(o.pdf,"reading")})).filter(b=>b.title);
+    if(!books.length) return;
+    READING.length=0; books.forEach(b=>READING.push(b));
+    renderReading(); renderReadingFilter(); applyReadingFilter();
+  }).catch(function(){});
+}
+function fetchLife(){
+  const url=C.sources&&C.sources.life; if(!url) return;
+  fetch(url,{cache:"no-store"}).then(r=>r.ok?r.text():Promise.reject(r.status)).then(text=>{
+    const objs=csvToObjects(text,LIFE_FIELDS); if(!objs||!objs.length) return;
+    const events=objs.map(o=>({year:o.year||"",title:o.title||"",desc:o.desc||"",now:/^(true|1|yes|y|是|現在)$/i.test(String(o.now||"").trim()),image:_asset(o.image,"images")})).filter(e=>e.title||e.year);
+    if(!events.length) return;
+    LIFE.length=0; events.forEach(e=>LIFE.push(e));
+    renderTimeline();
+  }).catch(function(){});
+}
+
 /* ---- 啟動 ---- */
 function renderAll(){
   document.getElementById("lastUpd").textContent = (C.dashboard&&C.dashboard.lastUpdated)||"";
@@ -772,6 +813,8 @@ document.getElementById("readingFilter").addEventListener("click",e=>{ const b=e
 (function(){ const t=document.getElementById("themeToggle"); if(!t) return; t.addEventListener("click",()=>{ const r=document.documentElement; const n=r.getAttribute("data-theme")==="dark"?"light":"dark"; r.setAttribute("data-theme",n); try{localStorage.setItem("theme",n);}catch(e){} }); })();
 route();
 fetchLiveDashboard();
+fetchReading();
+fetchLife();
 </script>
 </body>
 </html>
