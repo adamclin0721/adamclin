@@ -323,7 +323,7 @@
 
     <div class="updnote">
       <span><span class="dot"></span> <b>最後更新</b> <span id="lastUpd">2026-06-13</span></span>
-      <span>所有數值為手動維護 · 改 <code style="font-family:var(--mono)">content.js</code> 即可</span>
+      <span>所有數值為手動維護</span>
       <span>非投資建議</span>
     </div>
 
@@ -355,7 +355,6 @@
           <dt>CNN 恐懼貪婪</dt><dd>CNN Business Fear &amp; Greed Index，每日更新（0–100）。</dd>
           <dt>BofA 牛熊</dt><dd>BofA Global Research 每週發布的 Bull &amp; Bear Indicator（0–10）。</dd>
         </dl>
-        <p class="auto">查到新數字後，打開 <code>content.js</code> 改 <code>dashboard.indicators</code> 裡對應的 <code>value</code>，並把 <code>lastUpdated</code> 改成今天，存檔重新整理即可。</p>
       </div>
     </details>
   </section>
@@ -364,7 +363,7 @@
   <section class="panel" id="health" role="tabpanel" aria-label="健康長壽">
     <div class="phead">
       <span class="eyebrow">長壽醫學 · Longevity</span>
-      <h1>健康長壽 <span class="sample">範例文章</span></h1>
+      <h1>健康長壽</h1>
       <p>以證據為基礎的健康優化筆記——生物標記、有氧與肌力訓練、用藥取捨與恢復。</p>
     </div>
     <div class="list" id="healthList"></div>
@@ -374,7 +373,7 @@
   <section class="panel" id="reading" role="tabpanel" aria-label="閱讀筆記">
     <div class="phead">
       <span class="eyebrow">讀書 · Commonplace</span>
-      <h1>閱讀筆記 <span class="sample">範例書目</span></h1>
+      <h1>閱讀筆記</h1>
       <p>橫跨財經、科學與哲學的閱讀心得。一本書，一句話帶走的東西。</p>
     </div>
     <div class="list" id="readingList"></div>
@@ -384,7 +383,7 @@
   <section class="panel" id="life" role="tabpanel" aria-label="人生高光">
     <div class="phead">
       <span class="eyebrow">時間軸 · Milestones</span>
-      <h1>人生高光 <span class="sample">範例 · 年份請替換</span></h1>
+      <h1>人生高光</h1>
       <p>沿著一條量尺，標記值得記住的時刻。</p>
     </div>
     <div class="timeline"><div class="tl" id="timeline"></div></div>
@@ -547,7 +546,7 @@ function renderReading(){
         <div class="tagrow">${(b.tags||[]).map(t=>`<span class="chip">${t}</span>`).join("")}</div>
         ${link?`<span class="entry__more">開啟 PDF →</span>`:""}
       </div>
-      <div class="entry__side">${starStr(b.stars||0)}<br>${b.date||""}</div>
+      <div class="entry__side">${b.date||""}</div>
     </div>`;
   }).join("");
 }
@@ -615,7 +614,7 @@ function openArticle(type,index){
       <header class="rd-head">
         ${item.author?`<div class="rd-eyebrow">${item.author}</div>`:""}
         <h1 class="rd-title">${item.title}</h1>
-        <div class="rd-meta">${starStr(item.stars||0)}${item.date?" · "+item.date:""}</div>
+        <div class="rd-meta">${item.date||""}</div>
         ${item.note?`<p class="rd-note">${item.note}</p>`:""}
       </header>
       <div class="rd-pdf">
@@ -664,6 +663,53 @@ function route(){
 }
 window.addEventListener("hashchange",route);
 
+/* ---- 投資儀表板：Google 試算表即時數值（選用）----
+   在 content.js 的 dashboard.sheetUrl 填入「已發布為 CSV」的網址後，
+   載入時會抓取並覆寫下方後備數值；抓不到或未設定時，靜默沿用 content.js 的值。 */
+function parseCSV(text){
+  text=text.replace(/^﻿/,"");
+  const rows=[]; let row=[],field="",inq=false;
+  for(let i=0;i<text.length;i++){ const c=text[i];
+    if(inq){ if(c==='"'){ if(text[i+1]==='"'){ field+='"'; i++; } else inq=false; } else field+=c; }
+    else if(c==='"'){ inq=true; }
+    else if(c===','){ row.push(field); field=""; }
+    else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=""; }
+    else if(c!=='\r'){ field+=c; }
+  }
+  if(field!==""||row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r=>r.some(x=>String(x).trim()!==""));
+}
+function applyLiveData(map,updated){
+  let changed=false;
+  INDICATORS.forEach(ind=>{ const v=map[ind.id]; if(v!=null&&isFinite(v)){ ind.value=v; changed=true; } });
+  if(updated){ document.getElementById("lastUpd").textContent=updated; }
+  if(!changed) return;
+  renderBullets(); renderGauges(); gaugesAnimated=false;
+  if(document.getElementById("dashboard").classList.contains("is-active")) animateGauges();
+}
+function fetchLiveDashboard(){
+  const url=C.dashboard&&C.dashboard.sheetUrl;
+  if(!url) return;
+  fetch(url,{cache:"no-store"})
+    .then(r=>r.ok?r.text():Promise.reject(r.status))
+    .then(text=>{
+      const rows=parseCSV(text); if(rows.length<2) return;
+      const head=rows[0].map(s=>String(s).trim().toLowerCase());
+      let idCol=head.indexOf("id"); if(idCol<0) idCol=0;
+      let valCol=head.findIndex(s=>/數值|value/.test(s)); if(valCol<0) valCol=rows[0].length-1;
+      const map={}; let updated=null;
+      for(let k=1;k<rows.length;k++){
+        const id=String(rows[k][idCol]||"").trim(); if(!id) continue;
+        const raw=String(rows[k][valCol]||"").trim();
+        if(/^(updated|lastupdated)$/.test(id.toLowerCase())){ updated=raw; continue; }
+        const num=parseFloat(raw.replace(/[^0-9.\-]/g,""));
+        if(isFinite(num)) map[id]=num;
+      }
+      applyLiveData(map,updated);
+    })
+    .catch(function(){});
+}
+
 /* ---- 啟動 ---- */
 function renderAll(){
   document.getElementById("lastUpd").textContent = (C.dashboard&&C.dashboard.lastUpdated)||"";
@@ -672,6 +718,7 @@ function renderAll(){
 renderAll();
 bindOpen("healthList"); bindOpen("readingList");
 route();
+fetchLiveDashboard();
 </script>
 </body>
 </html>
