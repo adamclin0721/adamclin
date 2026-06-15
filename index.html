@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){try{var s=localStorage.getItem('theme');var d=s?s:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',d);}catch(e){}})();</script>
 <title>Adam · 個人站與投資儀表板</title>
 <meta name="description" content="個人心法、市場情緒儀表板、健康長壽筆記、閱讀心得與人生時間軸。">
+<meta name="author" content="Adam">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -29,6 +31,21 @@
     --serif:'Spectral',Georgia,serif;
     --mono:'IBM Plex Mono',ui-monospace,monospace;
   }
+
+  /* ---------- dark theme ---------- */
+  :root[data-theme="dark"]{
+    --bg:#161D20;--surface:#1E272B;--surface-2:#232E33;
+    --ink:#E8E7DF;--ink-soft:#AEB8BC;--ink-faint:#7E8C91;
+    --line:rgba(232,231,223,0.14);--line-strong:rgba(232,231,223,0.32);
+    --teal:#86B2BA;--brass:#CBA346;--brass-soft:#D8B45A;
+    --cool:#6E969E;--mid:#39444A;--warm:#C07E57;
+  }
+  [data-theme="dark"] .mark svg path[stroke="#2E5159"]{stroke:var(--teal)}
+  [data-theme="dark"] .mark svg line[stroke="#1B2A30"]{stroke:var(--ink)}
+  [data-theme="dark"] .gauge .needle{stroke:var(--ink)}
+  [data-theme="dark"] .gauge .needle-tip{fill:var(--ink)}
+  [data-theme="dark"] .gauge svg text{fill:var(--ink)}
+  [data-theme="dark"] .gauge svg line:not(.needle){stroke:var(--line-strong)}
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
@@ -60,7 +77,7 @@
   .mark svg{display:block}
   .mark__name{font-family:var(--display);font-weight:700;font-size:1.12rem;letter-spacing:-.01em}
   .mark__sub{font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;color:var(--ink-faint);text-transform:uppercase;margin-top:1px}
-  nav.tabs{margin-left:auto;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+  nav.tabs{margin-left:auto;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;min-width:0}
   nav.tabs::-webkit-scrollbar{display:none}
   .tab{
     font-family:var(--display);font-size:.92rem;font-weight:500;color:var(--ink-soft);
@@ -270,6 +287,20 @@
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   }
+  /* ---------- theme toggle ---------- */
+  .theme-toggle{flex:0 0 auto;margin-left:10px;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid var(--line);border-radius:8px;background:none;color:var(--ink-soft);cursor:pointer;transition:color .15s ease,border-color .15s ease}
+  .theme-toggle:hover{color:var(--ink);border-color:var(--line-strong)}
+  .theme-toggle:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .theme-toggle .ico{display:block}
+  .theme-toggle .ico-sun{display:none}
+  [data-theme="dark"] .theme-toggle .ico-moon{display:none}
+  [data-theme="dark"] .theme-toggle .ico-sun{display:block}
+  /* ---------- reading filter ---------- */
+  .rfilter{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
+  .rchip{font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;color:var(--ink-soft);background:none;border:1px solid var(--line);border-radius:99px;padding:5px 13px;cursor:pointer;transition:color .15s ease,border-color .15s ease,background .15s ease}
+  .rchip:hover{border-color:var(--line-strong);color:var(--ink)}
+  .rchip.is-on{background:var(--teal);border-color:var(--teal);color:var(--surface-2)}
+  .rchip:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -296,6 +327,10 @@
       <button class="tab" role="tab" data-target="reading" aria-selected="false">閱讀筆記</button>
       <button class="tab" role="tab" data-target="life" aria-selected="false">人生高光</button>
     </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="切換深色／淺色模式" title="切換深色／淺色">
+      <svg class="ico ico-moon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <svg class="ico ico-sun" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="2.6" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="21.4"/><line x1="2.6" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="21.4" y2="12"/><line x1="5.4" y1="5.4" x2="7" y2="7"/><line x1="17" y1="17" x2="18.6" y2="18.6"/><line x1="5.4" y1="18.6" x2="7" y2="17"/><line x1="17" y1="7" x2="18.6" y2="5.4"/></g></svg>
+    </button>
   </div>
   <div class="ruler"></div>
 </header>
@@ -323,7 +358,7 @@
 
     <div class="updnote">
       <span><span class="dot"></span> <b>最後更新</b> <span id="lastUpd">2026-06-13</span></span>
-      <span>所有數值為手動維護</span>
+      <span>數值由 Google 試算表同步</span>
       <span>非投資建議</span>
     </div>
 
@@ -376,6 +411,7 @@
       <h1>閱讀筆記</h1>
       <p>橫跨財經、科學與哲學的閱讀心得。一本書，一句話帶走的東西。</p>
     </div>
+    <div class="rfilter" id="readingFilter"></div>
     <div class="list" id="readingList"></div>
   </section>
 
@@ -538,7 +574,7 @@ function starStr(n){ let s=""; for(let i=1;i<=5;i++) s+= i<=n?"★":`<span class
 function renderReading(){
   document.getElementById("readingList").innerHTML = READING.map((b,i)=>{
     const link = !!b.pdf;
-    return `<div class="entry${link?" is-link":""}"${link?` data-open="reading/${i}" role="button" tabindex="0"`:""}>
+    return `<div class="entry${link?" is-link":""}" data-cat="${b.cat||""}"${link?` data-open="reading/${i}" role="button" tabindex="0"`:""}>
       <div class="entry__main">
         <div class="entry__t">${b.title}</div>
         <div class="entry__by">${b.author||""}</div>
@@ -710,13 +746,30 @@ function fetchLiveDashboard(){
     .catch(function(){});
 }
 
+/* ---- 閱讀筆記分類篩選 ---- */
+const READ_CATS=["全部","財經投資","心理學","歷史社會","個人成長","自然科學"];
+let readingCat="全部";
+function renderReadingFilter(){
+  const el=document.getElementById("readingFilter"); if(!el) return;
+  const cats=READ_CATS.filter(c=>c==="全部"||READING.some(b=>b.cat===c));
+  el.innerHTML=cats.map(c=>`<button class="rchip${c===readingCat?" is-on":""}" type="button" data-cat="${c}">${c}</button>`).join("");
+}
+function applyReadingFilter(){
+  document.querySelectorAll("#readingList .entry").forEach(it=>{
+    it.style.display=(readingCat==="全部"||it.getAttribute("data-cat")===readingCat)?"":"none";
+  });
+  document.querySelectorAll("#readingFilter .rchip").forEach(ch=>ch.classList.toggle("is-on",ch.getAttribute("data-cat")===readingCat));
+}
+
 /* ---- 啟動 ---- */
 function renderAll(){
   document.getElementById("lastUpd").textContent = (C.dashboard&&C.dashboard.lastUpdated)||"";
-  renderHome(); renderBullets(); renderGauges(); renderHealth(); renderReading(); renderTimeline();
+  renderHome(); renderBullets(); renderGauges(); renderHealth(); renderReading(); renderTimeline(); renderReadingFilter(); applyReadingFilter();
 }
 renderAll();
 bindOpen("healthList"); bindOpen("readingList");
+document.getElementById("readingFilter").addEventListener("click",e=>{ const b=e.target.closest(".rchip"); if(b){ readingCat=b.getAttribute("data-cat"); applyReadingFilter(); } });
+(function(){ const t=document.getElementById("themeToggle"); if(!t) return; t.addEventListener("click",()=>{ const r=document.documentElement; const n=r.getAttribute("data-theme")==="dark"?"light":"dark"; r.setAttribute("data-theme",n); try{localStorage.setItem("theme",n);}catch(e){} }); })();
 route();
 fetchLiveDashboard();
 </script>
