@@ -16,6 +16,7 @@ window.SITE_CONTENT = {
   /* 外部資料來源：把 Google 試算表「發布為 CSV」的網址貼進來即可啟用；
      留空白＝沿用下方各區的內建資料當後備（就像投資儀表板那樣）。 */
   sources: {
+    health: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRo0AWDYEond76mpB2ldmXRFlH5bDXQ7FP9GmOimWExxEYrdeDHDSZZaUobs9WQSKVEbePj-E7NUXc0/pub?gid=1004166115&single=true&output=csv",
     reading: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRo0AWDYEond76mpB2ldmXRFlH5bDXQ7FP9GmOimWExxEYrdeDHDSZZaUobs9WQSKVEbePj-E7NUXc0/pub?gid=1936712676&single=true&output=csv",
     life: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRo0AWDYEond76mpB2ldmXRFlH5bDXQ7FP9GmOimWExxEYrdeDHDSZZaUobs9WQSKVEbePj-E7NUXc0/pub?gid=175264152&single=true&output=csv",
   },

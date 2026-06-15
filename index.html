@@ -802,6 +802,18 @@ function fetchLife(){
   }).catch(function(){});
 }
 
+const HEALTH_FIELDS={title:["title","標題","文章標題"],date:["date","日期"],read:["read","閱讀時間","時間"],lead:["lead","分類","小標"],desc:["desc","摘要","卡片摘要"],tags:["tags","標籤"],body:["body","內文","全文"]};
+function fetchHealth(){
+  const url=C.sources&&C.sources.health; if(!url) return;
+  fetch(url,{cache:"no-store"}).then(r=>r.ok?r.text():Promise.reject(r.status)).then(text=>{
+    const objs=csvToObjects(text,HEALTH_FIELDS); if(!objs||!objs.length) return;
+    const arts=objs.map(o=>({title:o.title||"",date:o.date||"",read:o.read||"",lead:o.lead||"",desc:o.desc||"",tags:_splitTags(o.tags),body:o.body||""})).filter(a=>a.title);
+    if(!arts.length) return;
+    HEALTH.length=0; arts.forEach(a=>HEALTH.push(a));
+    renderHealth();
+  }).catch(function(){});
+}
+
 /* ---- 啟動 ---- */
 function renderAll(){
   document.getElementById("lastUpd").textContent = (C.dashboard&&C.dashboard.lastUpdated)||"";
@@ -815,6 +827,7 @@ route();
 fetchLiveDashboard();
 fetchReading();
 fetchLife();
+fetchHealth();
 </script>
 </body>
 </html>
